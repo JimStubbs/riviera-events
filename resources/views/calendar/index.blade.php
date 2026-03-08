@@ -1,0 +1,59 @@
+@extends($isEmbed ? 'layouts.embed' : 'layouts.calendar')
+
+@section('title', config('app.name') . ' — Upcoming Events')
+
+@section('content')
+
+    {{-- Leaderboard ad --}}
+    <x-calendar.ad-leaderboard :ad="$leaderboardAd" />
+
+    {{-- Featured Banner --}}
+    <x-calendar.featured-banner :featured="$featured" />
+
+    {{-- Filter Bar --}}
+    <x-calendar.filter-bar />
+
+    {{-- Events Grid / Month View --}}
+    <div id="calendar-container" class="mt-6">
+        <div id="events-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {{-- Populated by calendar.js --}}
+        </div>
+
+        <div id="events-month" class="hidden">
+            {{-- Month grid populated by calendar.js --}}
+        </div>
+
+        <div id="events-week" class="hidden">
+            {{-- Week grid populated by calendar.js --}}
+        </div>
+
+        <div id="events-day" class="hidden">
+            {{-- Day list populated by calendar.js --}}
+        </div>
+
+        <div id="events-loading" class="flex justify-center py-12 hidden">
+            <svg class="animate-spin h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+        </div>
+
+        <div id="events-empty" class="hidden text-center py-16 text-gray-500">
+            <p class="text-xl font-medium">No events found</p>
+            <p class="mt-2 text-sm">Try adjusting your filters.</p>
+        </div>
+
+        <div id="events-pagination" class="mt-8 flex justify-center gap-2 hidden"></div>
+    </div>
+
+@endsection
+
+@push('scripts')
+<script>
+    window.calendarConfig = {
+        apiUrl: '{{ route('api.events.index') }}',
+        filterOptionsUrl: '{{ route('api.events.filter-options') }}',
+        isEmbed: {{ $isEmbed ? 'true' : 'false' }},
+    };
+</script>
+@endpush

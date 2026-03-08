@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-ink: #0f0f0f;
+    --color-paper: #f9f6f1;
+    --color-accent: #e8401c;
+    --color-accent-2: #ffc518;
+    --color-muted: #6b6157;
+    --color-surface: #ffffff;
+    --color-border: #e0d9cf;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'DM Serif Display', Georgia, serif;
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: 'DM Serif Display', Georgia, serif;
+  }
+
+  .view-btn-active {
+    background-color: var(--color-accent);
+    color: white;
+  }
+
+  .view-btn-inactive {
+    background-color: var(--color-surface);
+    color: var(--color-muted);
+  }
+
+  .view-btn-inactive:hover {
+    background-color: var(--color-paper);
+  }
+}
