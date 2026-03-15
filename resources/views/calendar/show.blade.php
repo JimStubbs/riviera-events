@@ -46,7 +46,7 @@
 
         {{-- Description --}}
         <div class="prose prose-gray max-w-none mb-8">
-            {!! nl2br(e($event->description)) !!}
+            {!! $event->description !!}
         </div>
 
         {{-- Action Buttons --}}

@@ -42,6 +42,10 @@ class EventObserver
 
     private function flushCache(): void
     {
-        Cache::tags(['events', 'filter-options'])->flush();
+        try {
+            Cache::tags(['events', 'filter-options'])->flush();
+        } catch (\Exception $e) {
+            // Cache driver does not support tagging (e.g. array driver on shared hosting)
+        }
     }
 }

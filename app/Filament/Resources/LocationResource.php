@@ -41,8 +41,8 @@ class LocationResource extends Resource
 
                         Forms\Components\TextInput::make('state')
                             ->required()
-                            ->maxLength(2)
-                            ->helperText('Two-letter state abbreviation (e.g., TX, CA)'),
+                            ->maxLength(50)
+                            ->helperText('State or region (e.g., Quintana Roo, QR)'),
                     ])->columns(2),
             ]);
     }

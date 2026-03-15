@@ -46,7 +46,19 @@ class EventResource extends Resource
                     ->schema([
                         Forms\Components\Toggle::make('is_all_day')
                             ->label('All Day Event')
-                            ->reactive()
+                            ->live()
+                            ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, bool $state): void {
+                                if ($state) {
+                                    $start = $get('start_date');
+                                    $end   = $get('end_date');
+                                    $set('start_date', $start
+                                        ? \Carbon\Carbon::parse($start)->startOfDay()->format('Y-m-d H:i:s')
+                                        : now()->startOfDay()->format('Y-m-d H:i:s'));
+                                    $set('end_date', ($end ?: $start)
+                                        ? \Carbon\Carbon::parse($end ?: $start)->setTime(23, 59)->format('Y-m-d H:i:s')
+                                        : now()->setTime(23, 59)->format('Y-m-d H:i:s'));
+                                }
+                            })
                             ->columnSpanFull(),
 
                         Forms\Components\DateTimePicker::make('start_date')

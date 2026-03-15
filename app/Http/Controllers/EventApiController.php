@@ -35,13 +35,16 @@ class EventApiController extends Controller
                 ])
                 ->when($request->integer('location'), fn ($q, $v) => $q->where('location_id', $v))
                 ->when($request->integer('category'), fn ($q, $v) => $q->where('category_id', $v))
-                ->when($request->string('search'), fn ($q, $v) => $q->where(function ($sub) use ($v) {
-                    $sub->where('title', 'like', "%{$v}%")
-                        ->orWhere('description', 'like', "%{$v}%")
-                        ->orWhere('organizer', 'like', "%{$v}%");
-                }))
-                ->when($request->string('start'), fn ($q, $v) => $q->where('start_date', '>=', $v))
-                ->when($request->string('end'), fn ($q, $v) => $q->where('start_date', '<=', $v))
+                ->when($request->filled('search'), function ($q) use ($request) {
+                    $v = $request->string('search');
+                    $q->where(function ($sub) use ($v) {
+                        $sub->where('title', 'like', "%{$v}%")
+                            ->orWhere('description', 'like', "%{$v}%")
+                            ->orWhere('organizer', 'like', "%{$v}%");
+                    });
+                })
+                ->when($request->filled('start'), fn ($q) => $q->where('start_date', '>=', $request->string('start')))
+                ->when($request->filled('end'), fn ($q) => $q->whereDate('start_date', '<=', $request->string('end')))
                 ->when($request->boolean('premium'), fn ($q) => $q->premium())
                 ->orderByDesc('is_premium')
                 ->orderBy('start_date')

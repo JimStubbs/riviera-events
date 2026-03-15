@@ -56,7 +56,7 @@ class ICalController extends Controller
             $vEvent = new ICalEvent(new UniqueIdentifier('riviera-event-' . $event->id));
             $vEvent->setSummary($event->title)
                 ->setDescription(strip_tags($event->description ?? ''))
-                ->setUrl(route('events.show', $event))
+                ->setUrl(new \Eluceo\iCal\Domain\ValueObject\Uri(route('events.show', $event)))
                 ->setOccurrence(new TimeSpan(
                     new ICalDateTime($startDt, false),
                     new ICalDateTime($endDt, false),
