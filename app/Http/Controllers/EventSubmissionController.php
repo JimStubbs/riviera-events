@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\EventVerificationMail;
 use App\Models\Event;
 use App\Notifications\NewEventPendingNotification;
+use App\Services\RecurringEventService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -37,6 +38,14 @@ class EventSubmissionController extends Controller
             'website'         => ['nullable', 'url', 'max:255'],
             'image'           => ['nullable', 'image', 'max:4096'],
             'submitter_email' => ['required', 'email', 'max:255'],
+
+            // Recurrence fields
+            'is_recurring'        => ['boolean'],
+            'recurrence_type'     => ['nullable', 'required_if:is_recurring,1', 'in:daily,weekly,monthly_date,monthly_weekday'],
+            'day_of_week'         => ['nullable', 'required_if:recurrence_type,weekly', 'integer', 'between:0,6'],
+            'week_of_month'       => ['nullable', 'required_if:recurrence_type,monthly_weekday', 'integer', 'between:1,5'],
+            'weekday'             => ['nullable', 'required_if:recurrence_type,monthly_weekday', 'integer', 'between:0,6'],
+            'recurrence_end_date' => ['nullable', 'required_if:is_recurring,1', 'date', 'after:start_date'],
         ]);
 
         $isAllDay = $request->boolean('is_all_day');
@@ -47,7 +56,23 @@ class EventSubmissionController extends Controller
             $data['end_date'] = $data['end_date'] . ' ' . $endTime . ':00';
         }
         $data['is_all_day'] = $isAllDay;
-        unset($data['start_time'], $data['end_time']);
+
+        // Capture recurrence data before stripping from Event fields
+        $isRecurring    = $request->boolean('is_recurring');
+        $recurrenceData = [
+            'recurrence_type'     => $data['recurrence_type'] ?? null,
+            'day_of_week'         => $data['day_of_week'] ?? null,
+            'week_of_month'       => $data['week_of_month'] ?? null,
+            'weekday'             => $data['weekday'] ?? null,
+            'recurrence_end_date' => $data['recurrence_end_date'] ?? null,
+        ];
+
+        unset(
+            $data['start_time'], $data['end_time'],
+            $data['is_recurring'], $data['recurrence_type'],
+            $data['day_of_week'], $data['week_of_month'],
+            $data['weekday'], $data['recurrence_end_date']
+        );
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('events', 'public');
@@ -57,6 +82,11 @@ class EventSubmissionController extends Controller
         $data['verification_token'] = Str::uuid()->toString();
 
         $event = Event::create($data);
+
+        // Generate recurring occurrences if requested
+        if ($isRecurring && $recurrenceData['recurrence_type']) {
+            app(RecurringEventService::class)->generateSeries($event, $recurrenceData);
+        }
 
         Mail::to($event->submitter_email)->queue(new EventVerificationMail($event));
 

@@ -90,6 +90,98 @@
             </div>
         </div>
 
+        {{-- Recurrence --}}
+        <div x-data="{
+            isRecurring: {{ old('is_recurring') ? 'true' : 'false' }},
+            recurrenceType: '{{ old('recurrence_type', '') }}'
+        }" class="border border-gray-200 rounded-lg p-4 space-y-4">
+
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="is_recurring" name="is_recurring" value="1"
+                       x-model="isRecurring"
+                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
+                       {{ old('is_recurring') ? 'checked' : '' }}>
+                <label for="is_recurring" class="text-sm font-medium text-gray-700">
+                    This is a recurring event
+                </label>
+            </div>
+
+            <div x-show="isRecurring" x-cloak class="space-y-4">
+
+                {{-- Recurrence type --}}
+                <div>
+                    <x-input-label for="recurrence_type" value="Repeats *" />
+                    <select id="recurrence_type" name="recurrence_type"
+                            x-model="recurrenceType"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select pattern</option>
+                        <option value="daily"           {{ old('recurrence_type') === 'daily'           ? 'selected' : '' }}>Daily</option>
+                        <option value="weekly"          {{ old('recurrence_type') === 'weekly'          ? 'selected' : '' }}>Weekly (same weekday)</option>
+                        <option value="monthly_date"    {{ old('recurrence_type') === 'monthly_date'    ? 'selected' : '' }}>Monthly (same date) — months without this date are skipped</option>
+                        <option value="monthly_weekday" {{ old('recurrence_type') === 'monthly_weekday' ? 'selected' : '' }}>Monthly (same weekday position, e.g. 3rd Monday)</option>
+                    </select>
+                    <x-input-error :messages="$errors->get('recurrence_type')" class="mt-1" />
+                </div>
+
+                {{-- Weekly: day of week --}}
+                <div x-show="recurrenceType === 'weekly'">
+                    <x-input-label for="day_of_week" value="Day of week *" />
+                    <select id="day_of_week" name="day_of_week"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="0" {{ old('day_of_week') == '0' ? 'selected' : '' }}>Sunday</option>
+                        <option value="1" {{ old('day_of_week', '1') == '1' ? 'selected' : '' }}>Monday</option>
+                        <option value="2" {{ old('day_of_week') == '2' ? 'selected' : '' }}>Tuesday</option>
+                        <option value="3" {{ old('day_of_week') == '3' ? 'selected' : '' }}>Wednesday</option>
+                        <option value="4" {{ old('day_of_week') == '4' ? 'selected' : '' }}>Thursday</option>
+                        <option value="5" {{ old('day_of_week') == '5' ? 'selected' : '' }}>Friday</option>
+                        <option value="6" {{ old('day_of_week') == '6' ? 'selected' : '' }}>Saturday</option>
+                    </select>
+                    <x-input-error :messages="$errors->get('day_of_week')" class="mt-1" />
+                </div>
+
+                {{-- Monthly weekday: week of month + weekday --}}
+                <div x-show="recurrenceType === 'monthly_weekday'" class="grid grid-cols-2 gap-4">
+                    <div>
+                        <x-input-label for="week_of_month" value="Week of month *" />
+                        <select id="week_of_month" name="week_of_month"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="1" {{ old('week_of_month', '1') == '1' ? 'selected' : '' }}>1st</option>
+                            <option value="2" {{ old('week_of_month') == '2' ? 'selected' : '' }}>2nd</option>
+                            <option value="3" {{ old('week_of_month') == '3' ? 'selected' : '' }}>3rd</option>
+                            <option value="4" {{ old('week_of_month') == '4' ? 'selected' : '' }}>4th</option>
+                            <option value="5" {{ old('week_of_month') == '5' ? 'selected' : '' }}>5th</option>
+                        </select>
+                        <x-input-error :messages="$errors->get('week_of_month')" class="mt-1" />
+                    </div>
+                    <div>
+                        <x-input-label for="weekday" value="Weekday *" />
+                        <select id="weekday" name="weekday"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="0" {{ old('weekday') == '0' ? 'selected' : '' }}>Sunday</option>
+                            <option value="1" {{ old('weekday', '1') == '1' ? 'selected' : '' }}>Monday</option>
+                            <option value="2" {{ old('weekday') == '2' ? 'selected' : '' }}>Tuesday</option>
+                            <option value="3" {{ old('weekday') == '3' ? 'selected' : '' }}>Wednesday</option>
+                            <option value="4" {{ old('weekday') == '4' ? 'selected' : '' }}>Thursday</option>
+                            <option value="5" {{ old('weekday') == '5' ? 'selected' : '' }}>Friday</option>
+                            <option value="6" {{ old('weekday') == '6' ? 'selected' : '' }}>Saturday</option>
+                        </select>
+                        <x-input-error :messages="$errors->get('weekday')" class="mt-1" />
+                    </div>
+                </div>
+
+                {{-- Repeat until date --}}
+                <div>
+                    <x-input-label for="recurrence_end_date" value="Repeat until (inclusive) *" />
+                    <x-text-input id="recurrence_end_date" name="recurrence_end_date" type="date"
+                                  class="mt-1 block w-full"
+                                  :value="old('recurrence_end_date')" />
+                    <p class="text-xs text-gray-500 mt-1">Maximum 52 occurrences will be generated.</p>
+                    <x-input-error :messages="$errors->get('recurrence_end_date')" class="mt-1" />
+                </div>
+
+            </div>
+        </div>
+
         {{-- Description --}}
         <div>
             <x-input-label for="description" value="Description *" />

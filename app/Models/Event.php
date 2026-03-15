@@ -20,6 +20,7 @@ class Event extends Model
         'website', 'is_all_day', 'is_premium', 'is_featured', 'featured_order', 'status',
         'is_paid', 'stripe_payment_id', 'views_count', 'submitter_email',
         'verification_token', 'verified_at', 'rejection_reason',
+        'recurring_series_id',
     ];
 
     protected function casts(): array
@@ -28,11 +29,12 @@ class Event extends Model
             'start_date' => 'datetime',
             'end_date' => 'datetime',
             'verified_at' => 'datetime',
-            'is_all_day' => 'boolean',
-            'is_premium' => 'boolean',
-            'is_featured' => 'boolean',
-            'is_paid' => 'boolean',
-            'views_count' => 'integer',
+            'is_all_day'           => 'boolean',
+            'is_premium'           => 'boolean',
+            'is_featured'          => 'boolean',
+            'is_paid'              => 'boolean',
+            'views_count'          => 'integer',
+            'recurring_series_id'  => 'integer',
         ];
     }
 
@@ -78,6 +80,16 @@ class Event extends Model
     public function views(): HasMany
     {
         return $this->hasMany(EventView::class);
+    }
+
+    public function recurringSeries(): BelongsTo
+    {
+        return $this->belongsTo(RecurringEventSeries::class, 'recurring_series_id');
+    }
+
+    public function isPartOfSeries(): bool
+    {
+        return $this->recurring_series_id !== null;
     }
 
     // Scopes
