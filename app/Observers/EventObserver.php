@@ -22,6 +22,14 @@ class EventObserver
         if ($event->wasChanged('status')) {
             Cache::forget('ics_feed');
 
+            // Approve all sibling occurrences when one event in a series is approved
+            if ($event->status === 'approved' && $event->recurring_series_id) {
+                Event::where('recurring_series_id', $event->recurring_series_id)
+                    ->where('id', '!=', $event->id)
+                    ->where('status', '!=', 'approved')
+                    ->update(['status' => 'approved']);
+            }
+
             $recipient = $event->submitter_email ?? optional($event->user)->email;
 
             if ($recipient) {
@@ -42,10 +50,6 @@ class EventObserver
 
     private function flushCache(): void
     {
-        try {
-            Cache::tags(['events', 'filter-options'])->flush();
-        } catch (\Exception $e) {
-            // Cache driver does not support tagging (e.g. array driver on shared hosting)
-        }
+        Cache::flush();
     }
 }

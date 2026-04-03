@@ -106,7 +106,13 @@ class Event extends Model
 
     public function scopeUpcoming($query)
     {
-        return $query->where('end_date', '>=', now());
+        return $query->where(function ($q) {
+            $q->where('end_date', '>=', now())
+              ->orWhere(function ($sub) {
+                  $sub->whereNull('end_date')
+                      ->where('start_date', '>=', now()->startOfDay());
+              });
+        });
     }
 
     public function scopePendingApproval($query)

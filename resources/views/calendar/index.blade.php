@@ -1,6 +1,14 @@
 @extends($isEmbed ? 'layouts.embed' : 'layouts.calendar')
 
-@section('title', config('app.name') . ' — Upcoming Events')
+@section('title', 'Riviera Maya Events Calendar — Upcoming Events')
+
+@push('head')
+<meta property="og:title" content="Riviera Maya Events Calendar — Upcoming Events" />
+<meta property="og:description" content="Discover upcoming events in the Riviera Maya — Puerto Aventuras, Playa del Carmen, Tulum and beyond." />
+<meta property="og:image" content="{{ asset('images/rm-events-calendar.png') }}" />
+<meta property="og:url" content="{{ url('/') }}" />
+<meta property="og:type" content="website" />
+@endpush
 
 @section('content')
 

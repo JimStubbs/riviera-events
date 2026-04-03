@@ -1,6 +1,16 @@
 @extends($isEmbed ? 'layouts.embed' : 'layouts.calendar')
 
-@section('title', $event->title . ' — ' . config('app.name'))
+@section('title', $event->title)
+
+@push('head')
+<meta property="og:title" content="{{ $event->title }}" />
+<meta property="og:description" content="{{ Str::limit(html_entity_decode(strip_tags($event->description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 200) }}" />
+@if($event->image_url)
+<meta property="og:image" content="{{ $event->image_url }}" />
+@endif
+<meta property="og:url" content="{{ url()->current() }}" />
+<meta property="og:type" content="event" />
+@endpush
 
 @section('content')
 <div class="flex gap-8">

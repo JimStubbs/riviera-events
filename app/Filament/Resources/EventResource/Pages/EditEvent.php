@@ -38,7 +38,6 @@ class EditEvent extends EditRecord
 
         return Action::make('save')
             ->label('Save changes')
-            ->submit('save')
             ->requiresConfirmation()
             ->modalHeading('Save recurring event')
             ->modalDescription('How should these changes be applied?')
@@ -61,6 +60,9 @@ class EditEvent extends EditRecord
 
     /**
      * After saving, propagate changes to future occurrences if the user chose to.
+     * getChanges() is used here (not getDirty() in beforeSave) because Filament
+     * fills the model with form data—including processed file uploads—only
+     * immediately before save(), so getDirty() misses file fields.
      */
     protected function afterSave(): void
     {
@@ -72,12 +74,15 @@ class EditEvent extends EditRecord
             return;
         }
 
-        app(RecurringEventService::class)->updateFutureOccurrences(
-            $this->record,
-            $this->record->getChanges()
-        );
+        $changes = $this->record->getChanges();
 
-        // Reset scope so a subsequent save in the same page load defaults to 'just_this'
+        if (! empty($changes)) {
+            app(RecurringEventService::class)->updateFutureOccurrences(
+                $this->record,
+                $changes
+            );
+        }
+
         $this->editScope = 'just_this';
     }
 }

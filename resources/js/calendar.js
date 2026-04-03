@@ -25,7 +25,8 @@ class EventCalendar {
         this.currentPage = 1;
         this.lastMeta = null;
 
-        // Week/Day navigation state
+        // Month/Week/Day navigation state
+        this._currentMonthDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
         this._currentWeekStart = this._startOfWeek(new Date());
         this._currentDay = new Date();
 
@@ -172,7 +173,10 @@ class EventCalendar {
         if (this.els.day)   this.els.day.classList.toggle('hidden', view !== 'day');
 
         // For week/day views, auto-set date range and use large page size
-        if (view === 'week') {
+        if (view === 'month') {
+            this._currentMonthDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+            this._applyMonthDateRange();
+        } else if (view === 'week') {
             this._currentWeekStart = this._startOfWeek(new Date());
             this._applyWeekDateRange();
         } else if (view === 'day') {
@@ -181,6 +185,13 @@ class EventCalendar {
         }
 
         if (fetch) this._reset();
+    }
+
+    _applyMonthDateRange() {
+        const y = this._currentMonthDate.getFullYear();
+        const m = this._currentMonthDate.getMonth();
+        this.state.start = this._formatDate(new Date(y, m, 1));
+        this.state.end   = this._formatDate(new Date(y, m + 1, 0));
     }
 
     _applyWeekDateRange() {
@@ -211,9 +222,9 @@ class EventCalendar {
         if (this.state.end)      params.set('end', this.state.end);
         if (this.state.premium)  params.set('premium', '1');
 
-        // Week/Day views fetch more events without pagination
-        if (this.state.view === 'week' || this.state.view === 'day') {
-            params.set('per_page', '100');
+        // Non-list views fetch all events without pagination
+        if (this.state.view === 'week' || this.state.view === 'day' || this.state.view === 'month') {
+            params.set('per_page', '400');
         } else {
             if (this.currentPage > 1) params.set('page', this.currentPage);
         }
@@ -286,11 +297,11 @@ class EventCalendar {
     _renderMonth(events) {
         if (!this.els.month) return;
 
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth();
+        const year = this._currentMonthDate.getFullYear();
+        const month = this._currentMonthDate.getMonth();
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const today = new Date();
 
         const monthNames = ['January','February','March','April','May','June',
                             'July','August','September','October','November','December'];
@@ -306,7 +317,9 @@ class EventCalendar {
 
         let html = `<div class="bg-white overflow-hidden" style="border: 1px solid var(--color-border); border-radius: 2px;">`;
         html += `<div class="flex items-center justify-between px-4 py-3" style="border-bottom: 1px solid var(--color-border)">
+            <button id="month-prev" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">← Prev</button>
             <h2 style="font-family: 'DM Serif Display', Georgia, serif; color: var(--color-ink)">${monthNames[month]} ${year}</h2>
+            <button id="month-next" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">Next →</button>
         </div>`;
 
         html += `<div class="grid grid-cols-7 text-xs text-center border-b" style="color: var(--color-muted); border-color: var(--color-border)">`;
@@ -325,16 +338,16 @@ class EventCalendar {
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
             const dayEvents = byDate[dateStr] || [];
-            const isToday = day === now.getDate() && month === now.getMonth();
+            const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
 
             html += `<div class="aspect-square p-1 border-r border-b overflow-hidden cursor-pointer" style="border-color: var(--color-border); ${isToday ? 'background-color: #fef2ee;' : ''}">`;
             html += `<div class="text-xs font-medium mb-0.5" style="color: ${isToday ? 'var(--color-accent)' : 'var(--color-ink)'}">${day}</div>`;
-            dayEvents.slice(0, 2).forEach(ev => {
+            dayEvents.slice(0, 10).forEach(ev => {
                 const color = ev.category?.color || '#6B7280';
                 html += `<a href="/events/${ev.slug}" class="block truncate text-xs px-0.5 text-white mb-0.5" style="background-color:${color}; border-radius: 1px" title="${ev.title}">${ev.title}</a>`;
             });
-            if (dayEvents.length > 2) {
-                html += `<div class="text-xs" style="color: var(--color-muted)">+${dayEvents.length - 2} more</div>`;
+            if (dayEvents.length > 10) {
+                html += `<button class="month-more-btn text-xs font-medium mt-0.5" style="color: var(--color-accent)" data-date="${dateStr}">+${dayEvents.length - 10} more</button>`;
             }
             html += `</div>`;
         }
@@ -342,6 +355,28 @@ class EventCalendar {
         html += `</div></div>`;
 
         this.els.month.innerHTML = html;
+
+        // Bind prev/next navigation
+        document.getElementById('month-prev')?.addEventListener('click', () => {
+            this._currentMonthDate = new Date(year, month - 1, 1);
+            this._applyMonthDateRange();
+            this._fetchEvents();
+        });
+        document.getElementById('month-next')?.addEventListener('click', () => {
+            this._currentMonthDate = new Date(year, month + 1, 1);
+            this._applyMonthDateRange();
+            this._fetchEvents();
+        });
+
+        // Bind "+X more" buttons to switch to day view for that date
+        this.els.month.querySelectorAll('.month-more-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const [y, m, d] = btn.dataset.date.split('-').map(Number);
+                this._currentDay = new Date(y, m - 1, d);
+                this._applyDayDateRange();
+                this._setView('day');
+            });
+        });
     }
 
     _renderWeek(events) {
@@ -505,7 +540,9 @@ class EventCalendar {
     }
 
     _eventCardHtml(event) {
-        const d = event.start_date ? new Date(event.start_date) : null;
+        // Parse date from the YYYY-MM-DD portion only to avoid UTC→local timezone shifts
+        const parts = event.start_date ? event.start_date.split('T')[0].split('-') : null;
+        const d = parts ? new Date(+parts[0], +parts[1] - 1, +parts[2]) : null;
         const month = d ? d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : '';
         const day = d ? d.getDate() : '';
         const catColor = event.category?.color || 'var(--color-accent)';

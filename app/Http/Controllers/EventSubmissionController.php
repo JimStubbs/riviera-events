@@ -80,6 +80,7 @@ class EventSubmissionController extends Controller
 
         $data['status']             = 'pending_verification';
         $data['verification_token'] = Str::uuid()->toString();
+        $data['user_id']            = auth()->id();
 
         $event = Event::create($data);
 

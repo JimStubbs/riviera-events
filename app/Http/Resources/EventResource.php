@@ -14,7 +14,7 @@ class EventResource extends JsonResource
             'title'       => $this->title,
             'slug'        => $this->slug,
             'description' => $this->description,
-            'excerpt'     => mb_strimwidth(strip_tags($this->description ?? ''), 0, 160, '…'),
+            'excerpt'     => mb_strimwidth(html_entity_decode(strip_tags($this->description ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 0, 160, '…'),
             'start_date'  => $this->start_date?->toIso8601String(),
             'end_date'    => $this->end_date?->toIso8601String(),
             'organizer'   => $this->organizer,

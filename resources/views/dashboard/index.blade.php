@@ -107,16 +107,14 @@
                                     <a href="{{ route('dashboard.events.edit', $event) }}"
                                        class="text-blue-600 hover:text-blue-800 mr-3 text-xs font-medium">Edit</a>
                                 @endif
-                                @if (in_array($event->status, ['draft', 'pending_verification', 'pending_payment', 'rejected']))
-                                    <form method="POST" action="{{ route('dashboard.events.destroy', $event) }}"
-                                          class="inline"
-                                          onsubmit="return confirm('Delete this event? This cannot be undone.')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="text-red-500 hover:text-red-700 text-xs">Delete</button>
-                                    </form>
-                                @endif
+                                <form method="POST" action="{{ route('dashboard.events.destroy', $event) }}"
+                                      class="inline"
+                                      onsubmit="return confirm('Delete this event? This cannot be undone.')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                            class="text-red-500 hover:text-red-700 text-xs">Delete</button>
+                                </form>
                             </td>
                         </tr>
                     @endforeach

@@ -115,7 +115,6 @@
                             x-model="recurrenceType"
                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Select pattern</option>
-                        <option value="daily"           {{ old('recurrence_type') === 'daily'           ? 'selected' : '' }}>Daily</option>
                         <option value="weekly"          {{ old('recurrence_type') === 'weekly'          ? 'selected' : '' }}>Weekly (same weekday)</option>
                         <option value="monthly_date"    {{ old('recurrence_type') === 'monthly_date'    ? 'selected' : '' }}>Monthly (same date) — months without this date are skipped</option>
                         <option value="monthly_weekday" {{ old('recurrence_type') === 'monthly_weekday' ? 'selected' : '' }}>Monthly (same weekday position, e.g. 3rd Monday)</option>

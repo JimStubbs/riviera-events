@@ -9,13 +9,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/calendar.js'])
+    @stack('head')
 </head>
 <body class="font-sans antialiased">
 
     {{-- Masthead strip --}}
     <div style="background-color: var(--color-accent)">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5 flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-[0.18em] text-white opacity-90">{{ config('app.name', 'Riviera Events') }}</span>
+            <span class="text-xs font-bold uppercase tracking-[0.18em] text-white opacity-90">Riviera Maya Events Calendar</span>
             <span class="text-xs text-white opacity-50 hidden sm:block">{{ now()->format('l, F j, Y') }}</span>
         </div>
     </div>

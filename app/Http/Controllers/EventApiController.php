@@ -15,12 +15,12 @@ class EventApiController extends Controller
 {
     public function index(Request $request): AnonymousResourceCollection
     {
-        $perPage = min((int) $request->integer('per_page', 20), 100);
+        $perPage = min((int) $request->integer('per_page', 20), 500);
         $filters = $request->only(['location', 'category', 'search', 'start', 'end', 'premium', 'page', 'per_page']);
 
         $cacheKey = 'events_api_' . md5(json_encode($filters));
 
-        $events = Cache::tags(['events'])->remember($cacheKey, 300, function () use ($request, $perPage) {
+        $events = Cache::remember($cacheKey, 300, function () use ($request, $perPage) {
             return Event::query()
                 ->approved()
                 ->upcoming()
@@ -56,7 +56,7 @@ class EventApiController extends Controller
 
     public function filterOptions(): JsonResponse
     {
-        $options = Cache::tags(['filter-options'])->remember('filter_options', 1800, function () {
+        $options = Cache::remember('filter_options', 1800, function () {
             return [
                 'locations' => Location::orderBy('city')
                     ->select('id', 'name', 'city', 'state')

@@ -24,6 +24,6 @@ class AdObserver
 
     private function flushCache(): void
     {
-        Cache::tags(['ads'])->flush();
+        Cache::flush();
     }
 }

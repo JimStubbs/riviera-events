@@ -15,7 +15,7 @@ class AdService
     {
         $cacheKey = "ads_{$placement}_{$locationId}";
 
-        return Cache::tags(['ads'])->remember($cacheKey, now()->addMinutes(10), function () use ($placement, $locationId) {
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($placement, $locationId) {
             return Ad::active()
                 ->forPlacement($placement)
                 ->when($locationId, fn ($q) => $q->forLocation($locationId))

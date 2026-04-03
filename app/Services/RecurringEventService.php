@@ -67,14 +67,12 @@ class RecurringEventService
             return;
         }
 
-        Event::withoutObservers(function () use ($pivot, $propagatable) {
-            Event::where('recurring_series_id', $pivot->recurring_series_id)
-                 ->where('start_date', '>=', $pivot->start_date)
-                 ->where('id', '!=', $pivot->id)
-                 ->update($propagatable);
-        });
+        Event::where('recurring_series_id', $pivot->recurring_series_id)
+             ->where('start_date', '>=', $pivot->start_date)
+             ->where('id', '!=', $pivot->id)
+             ->update($propagatable);
 
-        Cache::tags(['events', 'filter-options'])->flush();
+        Cache::flush();
     }
 
     /**
@@ -97,6 +95,7 @@ class RecurringEventService
             $next = match ($recurrenceType) {
                 'daily'           => $this->nextDaily($cursor),
                 'weekly'          => $this->nextWeekly($cursor),
+                'biweekly'        => $this->nextBiweekly($cursor),
                 'monthly_date'    => $this->nextMonthlyDate($cursor, $startAfter->day),
                 'monthly_weekday' => $this->nextMonthlyWeekday(
                     $cursor,
@@ -129,8 +128,12 @@ class RecurringEventService
 
     private function nextWeekly(Carbon $from): Carbon
     {
-        // Adds exactly 7 days — weekday is preserved automatically
         return $from->copy()->addWeek();
+    }
+
+    private function nextBiweekly(Carbon $from): Carbon
+    {
+        return $from->copy()->addWeeks(2);
     }
 
     /**
@@ -211,30 +214,28 @@ class RecurringEventService
             'verified_at', 'verification_token',
         ])->all();
 
-        Event::withoutObservers(function () use ($cloneFields, $template, $series, $dates, $duration) {
-            foreach ($dates as $index => $occurrenceDate) {
-                $endDate = $duration !== null
-                    ? $occurrenceDate->copy()->addSeconds($duration)
-                    : null;
+        foreach ($dates as $index => $occurrenceDate) {
+            $endDate = $duration !== null
+                ? $occurrenceDate->copy()->addSeconds($duration)
+                : null;
 
-                $slug = $this->generateUniqueSlug($template->slug, $index + 2);
+            $slug = $this->generateUniqueSlug($template->slug, $index + 2);
 
-                Event::create(array_merge($cloneFields, [
-                    'slug'                => $slug,
-                    'start_date'          => $occurrenceDate,
-                    'end_date'            => $endDate,
-                    'recurring_series_id' => $series->id,
-                    'views_count'         => 0,
-                    'stripe_payment_id'   => null,
-                    'is_paid'             => false,
-                    'verified_at'         => null,
-                    'verification_token'  => null,
-                ]));
-            }
-        });
+            Event::create(array_merge($cloneFields, [
+                'slug'                => $slug,
+                'start_date'          => $occurrenceDate,
+                'end_date'            => $endDate,
+                'recurring_series_id' => $series->id,
+                'views_count'         => 0,
+                'stripe_payment_id'   => null,
+                'is_paid'             => false,
+                'verified_at'         => null,
+                'verification_token'  => null,
+            ]));
+        }
 
         // Flush cache once after all occurrences are created
-        Cache::tags(['events', 'filter-options'])->flush();
+        Cache::flush();
     }
 
     /**

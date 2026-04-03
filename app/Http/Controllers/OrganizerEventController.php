@@ -11,9 +11,17 @@ use Illuminate\Validation\Rule;
 
 class OrganizerEventController extends Controller
 {
+    private function authorizeEvent(Event $event): void
+    {
+        $user = auth()->user();
+        $owns = $event->user_id === $user->id
+            || (is_null($event->user_id) && $event->submitter_email === $user->email);
+        abort_unless($owns, 403);
+    }
+
     public function show(Event $event)
     {
-        abort_unless($event->user_id === auth()->id(), 403);
+        $this->authorizeEvent($event);
         $event->load(['location', 'category']);
 
         return view('dashboard.events.show', compact('event'));
@@ -21,7 +29,7 @@ class OrganizerEventController extends Controller
 
     public function edit(Event $event)
     {
-        abort_unless($event->user_id === auth()->id(), 403);
+        $this->authorizeEvent($event);
 
         $locations  = Location::orderBy('name')->pluck('name', 'id');
         $categories = Category::orderBy('name')->pluck('name', 'id');
@@ -31,7 +39,7 @@ class OrganizerEventController extends Controller
 
     public function update(Request $request, Event $event)
     {
-        abort_unless($event->user_id === auth()->id(), 403);
+        $this->authorizeEvent($event);
 
         $isApproved = $event->status === 'approved';
 
@@ -84,8 +92,7 @@ class OrganizerEventController extends Controller
 
     public function destroy(Event $event)
     {
-        abort_unless($event->user_id === auth()->id(), 403);
-        abort_if($event->status === 'approved', 403, 'Approved events cannot be deleted.');
+        $this->authorizeEvent($event);
 
         if ($event->image) {
             Storage::disk('public')->delete($event->image);

@@ -120,6 +120,7 @@ class EventResource extends Resource
                             ->options([
                                 'daily'           => 'Daily',
                                 'weekly'          => 'Weekly (same weekday)',
+                                'biweekly'        => 'Every other week (same weekday)',
                                 'monthly_date'    => 'Monthly (same date)',
                                 'monthly_weekday' => 'Monthly (same weekday position)',
                             ])
@@ -132,7 +133,7 @@ class EventResource extends Resource
                                     return;
                                 }
                                 $date = \Carbon\Carbon::parse($startDate);
-                                if ($state === 'weekly') {
+                                if ($state === 'weekly' || $state === 'biweekly') {
                                     $set('day_of_week', $date->dayOfWeek);
                                 }
                                 if ($state === 'monthly_weekday') {
@@ -160,11 +161,11 @@ class EventResource extends Resource
                             ->dehydrated(false)
                             ->visible(fn (Forms\Get $get): bool =>
                                 (bool) $get('is_recurring') &&
-                                $get('recurrence_type') === 'weekly'
+                                in_array($get('recurrence_type'), ['weekly', 'biweekly'])
                             )
                             ->required(fn (Forms\Get $get): bool =>
                                 (bool) $get('is_recurring') &&
-                                $get('recurrence_type') === 'weekly'
+                                in_array($get('recurrence_type'), ['weekly', 'biweekly'])
                             ),
 
                         Forms\Components\Select::make('week_of_month')
@@ -277,6 +278,11 @@ class EventResource extends Resource
                     ->sortable(),
             ])
             ->filters([
+                Tables\Filters\Filter::make('upcoming_only')
+                    ->label('Hide past events')
+                    ->query(fn (Builder $query) => $query->where('start_date', '>=', now()->startOfDay()))
+                    ->default(),
+
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
                         'draft' => 'Draft',
