@@ -318,7 +318,7 @@ class EventCalendar {
         let html = `<div class="bg-white overflow-hidden" style="border: 1px solid var(--color-border); border-radius: 2px;">`;
         html += `<div class="flex items-center justify-between px-4 py-3" style="border-bottom: 1px solid var(--color-border)">
             <button id="month-prev" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">← Prev</button>
-            <h2 style="font-family: 'DM Serif Display', Georgia, serif; color: var(--color-ink)">${monthNames[month]} ${year}</h2>
+            <h2 style="font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; color: var(--color-ink)">${monthNames[month]} ${year}</h2>
             <button id="month-next" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">Next →</button>
         </div>`;
 
@@ -344,7 +344,9 @@ class EventCalendar {
             html += `<div class="text-xs font-medium mb-0.5" style="color: ${isToday ? 'var(--color-accent)' : 'var(--color-ink)'}">${day}</div>`;
             dayEvents.slice(0, 10).forEach(ev => {
                 const color = ev.category?.color || '#6B7280';
-                html += `<a href="/events/${ev.slug}" class="block truncate text-xs px-0.5 text-white mb-0.5" style="background-color:${color}; border-radius: 1px" title="${ev.title}">${ev.title}</a>`;
+                const featuredStyle = ev.is_featured ? 'box-shadow: inset 2px 0 0 #fbbf24;' : '';
+            const starPrefix = ev.is_featured ? '★ ' : '';
+            html += `<a href="/events/${ev.slug}" class="block truncate text-xs px-0.5 text-white mb-0.5" style="background-color:${color}; border-radius: 1px; ${featuredStyle}" title="${ev.title}">${starPrefix}${ev.title}</a>`;
             });
             if (dayEvents.length > 10) {
                 html += `<button class="month-more-btn text-xs font-medium mt-0.5" style="color: var(--color-accent)" data-date="${dateStr}">+${dayEvents.length - 10} more</button>`;
@@ -408,7 +410,7 @@ class EventCalendar {
         // Navigation header
         html += `<div class="flex items-center justify-between px-4 py-3" style="border-bottom: 1px solid var(--color-border)">
             <button id="week-prev" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">← Prev</button>
-            <h2 class="text-sm" style="font-family: 'DM Serif Display', Georgia, serif; color: var(--color-ink)">${weekLabel}</h2>
+            <h2 class="text-sm" style="font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; color: var(--color-ink)">${weekLabel}</h2>
             <button id="week-next" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">Next →</button>
         </div>`;
 
@@ -435,8 +437,9 @@ class EventCalendar {
                 dayEvents.forEach(ev => {
                     const color = ev.category?.color || '#6B7280';
                     const time = ev.is_all_day ? 'All Day' : this._formatTime(ev.start_date);
-                    html += `<a href="/events/${ev.slug}" class="block mb-1 p-1 text-white text-xs hover:opacity-90 transition-opacity" style="background-color:${color}; border-radius: 1px" title="${this._esc(ev.title)}">
-                        <div class="font-medium truncate">${this._esc(ev.title)}</div>
+                    const featuredStyle = ev.is_featured ? 'box-shadow: inset 2px 0 0 #fbbf24;' : '';
+                    html += `<a href="/events/${ev.slug}" class="block mb-1 p-1 text-white text-xs hover:opacity-90 transition-opacity" style="background-color:${color}; border-radius: 1px; ${featuredStyle}" title="${this._esc(ev.title)}">
+                        <div class="font-medium truncate">${ev.is_featured ? '★ ' : ''}${this._esc(ev.title)}</div>
                         <div class="opacity-80">${time}</div>
                     </a>`;
                 });
@@ -478,13 +481,13 @@ class EventCalendar {
         // Navigation header
         html += `<div class="flex items-center justify-between px-4 py-3" style="border-bottom: 1px solid var(--color-border)">
             <button id="day-prev" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">← Prev</button>
-            <h2 style="font-family: 'DM Serif Display', Georgia, serif; color: var(--color-ink)">${dateLabel}</h2>
+            <h2 style="font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; color: var(--color-ink)">${dateLabel}</h2>
             <button id="day-next" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">Next →</button>
         </div>`;
 
         if (events.length === 0) {
             html += `<div class="py-16 text-center" style="color: var(--color-muted)">
-                <p class="text-lg font-display" style="font-family: 'DM Serif Display', Georgia, serif">No events on this day</p>
+                <p class="text-lg font-display" style="font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif">No events on this day</p>
             </div>`;
         } else {
             html += `<div class="divide-y" style="border-color: var(--color-border)">`;
@@ -493,14 +496,18 @@ class EventCalendar {
             allDay.forEach(ev => {
                 const cat = ev.category;
                 const color = cat?.color || '#6B7280';
+                const barColor = ev.is_featured ? '#fbbf24' : color;
+                const badge = ev.is_featured
+                    ? `<span class="ml-auto flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5" style="border-radius: 1px; background-color: #fef3c7; color: #92400e">★ Featured</span>`
+                    : (ev.is_premium ? `<span class="ml-auto flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5" style="border-radius: 1px; background-color: #fef9c3; color: #92400e">★ Premium</span>` : '');
                 html += `<a href="/events/${ev.slug}" class="flex items-center gap-3 px-4 py-3 transition-colors" style="color: inherit" onmouseover="this.style.backgroundColor='var(--color-paper)'" onmouseout="this.style.backgroundColor=''">
                     <div class="w-16 text-xs flex-shrink-0 font-medium" style="color: var(--color-muted)">All Day</div>
-                    <div class="w-1 h-8 flex-shrink-0" style="background-color:${color}; border-radius: 1px"></div>
+                    <div class="w-1 h-8 flex-shrink-0" style="background-color:${barColor}; border-radius: 1px"></div>
                     <div class="min-w-0">
                         <div class="font-medium truncate" style="color: var(--color-ink)">${this._esc(ev.title)}</div>
                         ${ev.location ? `<div class="text-xs" style="color: var(--color-muted)">${this._esc(ev.location.city)}</div>` : ''}
                     </div>
-                    ${ev.is_premium ? `<span class="ml-auto flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5" style="border-radius: 1px; background-color: #fef9c3; color: #92400e">★ Featured</span>` : ''}
+                    ${badge}
                 </a>`;
             });
 
@@ -508,15 +515,19 @@ class EventCalendar {
             timed.forEach(ev => {
                 const cat = ev.category;
                 const color = cat?.color || '#6B7280';
+                const barColor = ev.is_featured ? '#fbbf24' : color;
                 const time = this._formatTime(ev.start_date);
+                const badge = ev.is_featured
+                    ? `<span class="ml-auto flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5" style="border-radius: 1px; background-color: #fef3c7; color: #92400e">★ Featured</span>`
+                    : (ev.is_premium ? `<span class="ml-auto flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5" style="border-radius: 1px; background-color: #fef9c3; color: #92400e">★ Premium</span>` : '');
                 html += `<a href="/events/${ev.slug}" class="flex items-center gap-3 px-4 py-3 transition-colors" style="color: inherit" onmouseover="this.style.backgroundColor='var(--color-paper)'" onmouseout="this.style.backgroundColor=''">
                     <div class="w-16 text-xs flex-shrink-0 font-medium" style="color: var(--color-muted)">${time}</div>
-                    <div class="w-1 h-8 flex-shrink-0" style="background-color:${color}; border-radius: 1px"></div>
+                    <div class="w-1 h-8 flex-shrink-0" style="background-color:${barColor}; border-radius: 1px"></div>
                     <div class="min-w-0">
                         <div class="font-medium truncate" style="color: var(--color-ink)">${this._esc(ev.title)}</div>
                         ${ev.location ? `<div class="text-xs" style="color: var(--color-muted)">${this._esc(ev.location.city)}</div>` : ''}
                     </div>
-                    ${ev.is_premium ? `<span class="ml-auto flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5" style="border-radius: 1px; background-color: #fef9c3; color: #92400e">★ Featured</span>` : ''}
+                    ${badge}
                 </a>`;
             });
 
@@ -548,6 +559,11 @@ class EventCalendar {
         const catColor = event.category?.color || 'var(--color-accent)';
         const catName = event.category ? this._esc(event.category.name) : '';
 
+        const featuredBorder = event.is_featured ? 'border-left: 3px solid #fbbf24;' : '';
+        const featuredBadge = event.is_featured
+            ? `<span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #d97706">★ Featured</span>`
+            : (event.is_premium ? `<span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent-2)">★ Premium</span>` : '');
+
         const dateFlag = d ? `
             <div class="flex items-stretch" style="border-bottom: 1px solid var(--color-border)">
                 <div class="text-white px-3 py-2 text-center flex-shrink-0" style="min-width: 52px; background-color: var(--color-accent)">
@@ -556,7 +572,7 @@ class EventCalendar {
                 </div>
                 <div class="px-3 py-2 flex items-center flex-1 gap-2">
                     ${catName ? `<span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: ${catColor}">${catName}</span>` : ''}
-                    ${event.is_premium ? `<span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent-2)">★ Featured</span>` : ''}
+                    ${featuredBadge}
                 </div>
             </div>` : '';
 
@@ -569,11 +585,11 @@ class EventCalendar {
             : '';
 
         return `
-        <a href="/events/${event.slug}" class="block bg-white overflow-hidden group transition-all duration-200 hover:shadow-lg" style="border: 1px solid var(--color-border); border-radius: 2px;">
+        <a href="/events/${event.slug}" class="block bg-white overflow-hidden group transition-all duration-200 hover:shadow-lg" style="border: 1px solid var(--color-border); border-radius: 2px; ${featuredBorder}">
             ${dateFlag}
             ${img}
             <div class="p-4">
-                <h3 class="font-display text-lg leading-snug line-clamp-2" style="color: var(--color-ink); font-family: 'DM Serif Display', Georgia, serif">${this._esc(event.title)}</h3>
+                <h3 class="font-display text-base leading-snug line-clamp-2" style="color: var(--color-ink); font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif">${this._esc(event.title)}</h3>
                 ${loc}
                 ${event.excerpt ? `<p class="text-sm mt-2 line-clamp-2" style="color: var(--color-muted)">${this._esc(event.excerpt)}</p>` : ''}
             </div>

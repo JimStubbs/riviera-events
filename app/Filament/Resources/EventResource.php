@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\EventResource\Pages;
 use App\Models\Event;
+use App\Models\FeaturedEvent;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -235,6 +236,61 @@ class EventResource extends Resource
                             ->rows(3)
                             ->hidden(fn (Forms\Get $get): bool => $get('status') !== 'rejected'),
                     ]),
+
+                Forms\Components\Section::make('Featured Listing')
+                    ->description('Feature this event in the carousel at the top of the calendar.')
+                    ->schema([
+                        Forms\Components\Toggle::make('featuredEvent.active')
+                            ->label('Featured')
+                            ->columnSpanFull()
+                            ->live()
+                            ->afterStateHydrated(function (Forms\Components\Toggle $component, ?Event $record): void {
+                                $component->state((bool) $record?->featuredEvent?->active);
+                            })
+                            ->dehydrated(false)
+                            ->afterStateUpdated(function (bool $state, ?Event $record): void {
+                                if (! $record) return;
+                                if ($state) {
+                                    FeaturedEvent::updateOrCreate(
+                                        ['event_id' => $record->id],
+                                        ['active' => true, 'order' => 99,
+                                         'start_date' => now()->toDateString(),
+                                         'end_date'   => now()->addDays(30)->toDateString()]
+                                    );
+                                } else {
+                                    FeaturedEvent::where('event_id', $record->id)->update(['active' => false]);
+                                }
+                            }),
+
+                        Forms\Components\DatePicker::make('featuredEvent.start_date')
+                            ->label('Featured From')
+                            ->afterStateHydrated(function (Forms\Components\DatePicker $component, ?Event $record): void {
+                                $component->state($record?->featuredEvent?->start_date?->toDateString());
+                            })
+                            ->dehydrated(false)
+                            ->afterStateUpdated(function (?string $state, ?Event $record): void {
+                                if ($record && $state) {
+                                    FeaturedEvent::where('event_id', $record->id)->update(['start_date' => $state]);
+                                }
+                            })
+                            ->visible(fn (Forms\Get $get): bool => (bool) $get('featuredEvent.active')),
+
+                        Forms\Components\DatePicker::make('featuredEvent.end_date')
+                            ->label('Featured Until')
+                            ->afterOrEqual('featuredEvent.start_date')
+                            ->afterStateHydrated(function (Forms\Components\DatePicker $component, ?Event $record): void {
+                                $component->state($record?->featuredEvent?->end_date?->toDateString());
+                            })
+                            ->dehydrated(false)
+                            ->afterStateUpdated(function (?string $state, ?Event $record): void {
+                                if ($record && $state) {
+                                    FeaturedEvent::where('event_id', $record->id)->update(['end_date' => $state]);
+                                }
+                            })
+                            ->visible(fn (Forms\Get $get): bool => (bool) $get('featuredEvent.active')),
+                    ])
+                    ->columns(2)
+                    ->visibleOn('edit'),
             ]);
     }
 

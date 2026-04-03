@@ -20,13 +20,13 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'DM Serif Display', Georgia, serif;
+    font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
   }
 }
 
 @layer components {
   .font-display {
-    font-family: 'DM Serif Display', Georgia, serif;
+    font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
   }
 
   .view-btn-active {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\HandleFeaturedCheckoutCompleted;
 use App\Jobs\HandleStripeCheckoutCompleted;
 use App\Jobs\HandleStripePaymentFailed;
 use Illuminate\Http\JsonResponse;
@@ -24,11 +25,22 @@ class StripeWebhookController extends Controller
         }
 
         match ($event->type) {
-            'checkout.session.completed'   => HandleStripeCheckoutCompleted::dispatch($event->data->object),
+            'checkout.session.completed'    => $this->dispatchCheckoutJob($event->data->object),
             'payment_intent.payment_failed' => HandleStripePaymentFailed::dispatch($event->data->object),
             default => null,
         };
 
         return response()->json(['status' => 'ok']);
+    }
+
+    private function dispatchCheckoutJob(object $session): void
+    {
+        $type = $session->metadata->payment_type ?? 'premium';
+
+        if ($type === 'featured') {
+            HandleFeaturedCheckoutCompleted::dispatch($session);
+        } else {
+            HandleStripeCheckoutCompleted::dispatch($session);
+        }
     }
 }

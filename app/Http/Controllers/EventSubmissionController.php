@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Mail\EventVerificationMail;
 use App\Models\Event;
+use App\Models\FeaturedEvent;
+use App\Models\Payment;
 use App\Notifications\NewEventPendingNotification;
 use App\Services\RecurringEventService;
 use Illuminate\Http\RedirectResponse;
@@ -12,6 +14,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Stripe\Checkout\Session as StripeSession;
+use Stripe\Stripe;
 
 class EventSubmissionController extends Controller
 {
@@ -38,6 +42,9 @@ class EventSubmissionController extends Controller
             'website'         => ['nullable', 'url', 'max:255'],
             'image'           => ['nullable', 'image', 'max:4096'],
             'submitter_email' => ['required', 'email', 'max:255'],
+
+            // Featured add-on
+            'feature_event'       => ['boolean'],
 
             // Recurrence fields
             'is_recurring'        => ['boolean'],
@@ -90,6 +97,43 @@ class EventSubmissionController extends Controller
         }
 
         Mail::to($event->submitter_email)->queue(new EventVerificationMail($event));
+
+        if ($request->boolean('feature_event')) {
+            FeaturedEvent::create([
+                'event_id' => $event->id,
+                'order'    => 99,
+                'active'   => false,
+            ]);
+
+            Stripe::setApiKey(config('services.stripe.secret'));
+
+            $stripeSession = StripeSession::create([
+                'payment_method_types' => ['card'],
+                'line_items'           => [[
+                    'price_data' => [
+                        'currency'     => 'mxn',
+                        'product_data' => ['name' => $event->title . ' — Evento Destacado (200 MXN)'],
+                        'unit_amount'  => (int) env('FEATURED_EVENT_PRICE', 20000),
+                    ],
+                    'quantity' => 1,
+                ]],
+                'mode'        => 'payment',
+                'success_url' => route('submit.success') . '?featured=1',
+                'cancel_url'  => route('submit.create'),
+                'metadata'    => ['event_id' => $event->id, 'payment_type' => 'featured'],
+            ]);
+
+            Payment::create([
+                'user_id'           => null,
+                'event_id'          => $event->id,
+                'stripe_session_id' => $stripeSession->id,
+                'amount'            => (int) env('FEATURED_EVENT_PRICE', 20000),
+                'type'              => 'featured',
+                'status'            => 'pending',
+            ]);
+
+            return redirect($stripeSession->url);
+        }
 
         return redirect()->route('submit.success');
     }

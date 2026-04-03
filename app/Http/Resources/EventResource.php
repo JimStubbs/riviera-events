@@ -20,6 +20,7 @@ class EventResource extends JsonResource
             'organizer'   => $this->organizer,
             'website'     => $this->website,
             'is_premium'  => $this->is_premium,
+            'is_featured' => $this->is_featured,
             'is_all_day'  => $this->is_all_day,
             'views_count' => $this->views_count,
             'image_url'   => $this->image_url,

@@ -3,12 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\FeaturedEventResource\Pages;
+use App\Models\Event;
 use App\Models\FeaturedEvent;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Validation\Rule;
 
 class FeaturedEventResource extends Resource
 {
@@ -25,10 +27,28 @@ class FeaturedEventResource extends Resource
                 Forms\Components\Section::make()
                     ->schema([
                         Forms\Components\Select::make('event_id')
-                            ->relationship('event', 'title')
+                            ->label('Event')
+                            ->options(fn () =>
+                                Event::approved()
+                                    ->upcoming()
+                                    ->with('location')
+                                    ->orderBy('start_date')
+                                    ->get()
+                                    ->mapWithKeys(fn ($e) => [
+                                        $e->id => $e->title
+                                            . ' — ' . $e->start_date->format('M j, Y')
+                                            . ($e->location ? ' (' . $e->location->city . ')' : ''),
+                                    ])
+                            )
                             ->searchable()
-                            ->preload()
-                            ->required(),
+                            ->required()
+                            ->columnSpanFull()
+                            ->rules(fn (Forms\Get $get, ?FeaturedEvent $record) => [
+                                Rule::unique('featured_events', 'event_id')->ignore($record?->id),
+                            ])
+                            ->validationMessages([
+                                'unique' => 'This event already has a featured listing.',
+                            ]),
 
                         Forms\Components\TextInput::make('order')
                             ->numeric()
@@ -38,9 +58,11 @@ class FeaturedEventResource extends Resource
                         Forms\Components\Toggle::make('active')
                             ->default(true),
 
-                        Forms\Components\DatePicker::make('start_date'),
+                        Forms\Components\DatePicker::make('start_date')
+                            ->label('Featured From'),
 
                         Forms\Components\DatePicker::make('end_date')
+                            ->label('Featured Until')
                             ->afterOrEqual('start_date'),
                     ])->columns(2),
             ]);
@@ -55,6 +77,10 @@ class FeaturedEventResource extends Resource
                 Tables\Columns\TextColumn::make('event.title')
                     ->label('Event')
                     ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('event.location.city')
+                    ->label('Location')
                     ->sortable(),
 
                 Tables\Columns\TextInputColumn::make('order')
@@ -72,7 +98,16 @@ class FeaturedEventResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                //
+                Tables\Filters\TernaryFilter::make('active'),
+                Tables\Filters\Filter::make('date_range')
+                    ->form([
+                        Forms\Components\DatePicker::make('from')->label('From'),
+                        Forms\Components\DatePicker::make('until')->label('Until'),
+                    ])
+                    ->query(fn ($query, array $data) => $query
+                        ->when($data['from'], fn ($q) => $q->where('end_date', '>=', $data['from']))
+                        ->when($data['until'], fn ($q) => $q->where('start_date', '<=', $data['until']))
+                    ),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

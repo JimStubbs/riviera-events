@@ -213,6 +213,37 @@
             <x-input-error :messages="$errors->get('submitter_email')" class="mt-1" />
         </div>
 
+        {{-- Featured Listing Add-on --}}
+        <div x-data="{ featured: false }">
+            <div
+                class="border-2 p-4 cursor-pointer transition-colors"
+                :class="featured ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'"
+                style="border-radius: 2px;"
+                @click="featured = !featured"
+            >
+                <div class="flex items-start gap-3">
+                    <input type="checkbox" name="feature_event" value="1" id="feature_event"
+                           x-model="featured" @click.stop
+                           class="mt-0.5 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                    <div>
+                        <label for="feature_event" class="font-semibold text-gray-900 cursor-pointer select-none">
+                            ★ Feature This Event — 200 MXN (~$10 USD)
+                        </label>
+                        <p class="text-sm text-gray-500 mt-0.5">
+                            Your event will appear in the Featured carousel at the top of the calendar and be highlighted
+                            with a star badge across all views. Featured placement runs for 30 days from payment.
+                            After submitting you'll be redirected to Stripe to complete payment.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div x-show="featured" x-cloak
+                 class="text-sm text-blue-700 bg-blue-50 px-4 py-2 mt-1"
+                 style="border-radius: 2px; border: 1px solid #bfdbfe;">
+                Your email verification link will be sent immediately — no need to wait for payment first.
+            </div>
+        </div>
+
         <div class="flex items-center justify-between pt-2">
             <x-primary-button>Submit Event</x-primary-button>
             <a href="{{ route('calendar.index') }}" class="text-sm text-gray-500 hover:text-gray-700">Cancel</a>

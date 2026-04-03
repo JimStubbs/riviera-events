@@ -13,28 +13,33 @@
 </head>
 <body class="font-sans antialiased">
 
-    {{-- Masthead strip --}}
-    <div style="background-color: var(--color-accent)">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5 flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-[0.18em] text-white opacity-90">Riviera Maya Events Calendar</span>
-            <span class="text-xs text-white opacity-50 hidden sm:block">{{ now()->format('l, F j, Y') }}</span>
-        </div>
-    </div>
-
-    <header class="bg-white" style="border-bottom: 1px solid var(--color-border)">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
-            <a href="{{ route('calendar.index') }}" class="font-display text-xl" style="color: var(--color-ink)">
-                {{ config('app.name', 'Riviera Events') }}
+    {{-- Single combined header --}}
+    <header style="background-color: var(--color-accent)">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            <a href="{{ route('calendar.index') }}" class="font-display text-2xl text-white" style="font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; font-weight: 700;">
+                Riviera Maya Events Calendar
             </a>
-            <nav class="flex items-center gap-5 text-sm">
-                <a href="{{ route('calendar.index') }}" class="font-medium transition-colors" style="color: var(--color-muted)">Events</a>
-                @auth
-                    <a href="{{ route('dashboard') }}" class="font-medium transition-colors" style="color: var(--color-muted)">My Events</a>
+            <div class="flex items-center gap-4">
+                @if(request()->routeIs('submit.*'))
+                <a href="{{ route('calendar.index') }}"
+                   class="text-white text-xs font-bold uppercase tracking-widest px-4 py-2 transition-opacity hover:opacity-80"
+                   style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);">
+                    ← View Events
+                </a>
                 @else
-                    <a href="{{ route('login') }}" class="font-medium transition-colors" style="color: var(--color-muted)">Login</a>
-                    <a href="{{ route('register') }}" class="text-white text-xs font-bold uppercase tracking-widest px-4 py-2 transition-opacity hover:opacity-80" style="background-color: var(--color-accent)">Sign Up</a>
+                <a href="{{ route('submit.create') }}"
+                   class="text-white text-xs font-bold uppercase tracking-widest px-4 py-2 transition-opacity hover:opacity-80"
+                   style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);">
+                    Add Your Own Event
+                </a>
+                @endif
+                <span class="text-sm text-white opacity-60 hidden sm:block">{{ now()->format('l, F j, Y') }}</span>
+                @auth
+                    <a href="{{ route('dashboard') }}" class="text-sm font-medium text-white opacity-80 hover:opacity-100 transition-opacity">My Events</a>
+                @else
+                    <a href="{{ route('login') }}" class="text-sm font-medium text-white opacity-80 hover:opacity-100 transition-opacity">Login</a>
                 @endauth
-            </nav>
+            </div>
         </div>
     </header>
 

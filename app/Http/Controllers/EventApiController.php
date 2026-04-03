@@ -30,7 +30,7 @@ class EventApiController extends Controller
                 ])
                 ->select([
                     'id', 'title', 'slug', 'description', 'start_date', 'end_date',
-                    'image', 'organizer', 'website', 'is_premium', 'is_all_day', 'views_count',
+                    'image', 'organizer', 'website', 'is_premium', 'is_featured', 'is_all_day', 'views_count',
                     'location_id', 'category_id',
                 ])
                 ->when($request->integer('location'), fn ($q, $v) => $q->where('location_id', $v))

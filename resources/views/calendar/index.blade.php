@@ -23,7 +23,7 @@
 
     {{-- Events Grid / Month View --}}
     <div id="calendar-container" class="mt-6">
-        <div id="events-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div id="events-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {{-- Populated by calendar.js --}}
         </div>
 
