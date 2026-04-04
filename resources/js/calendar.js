@@ -16,7 +16,7 @@ class EventCalendar {
             category: '',
             start: '',
             end: '',
-            premium: false,
+            featured: false,
             page: 1,
             view: 'list',
         };
@@ -43,7 +43,7 @@ class EventCalendar {
             category: document.getElementById('filter-category'),
             start: document.getElementById('filter-start'),
             end: document.getElementById('filter-end'),
-            premium: document.getElementById('filter-premium'),
+            featured: document.getElementById('filter-featured'),
         };
 
         if (!this.els.list) return; // Not on calendar page
@@ -63,7 +63,7 @@ class EventCalendar {
         this.state.category = params.get('category') || '';
         this.state.start    = params.get('start')    || '';
         this.state.end      = params.get('end')      || '';
-        this.state.premium  = params.get('premium')  === '1';
+        this.state.featured = params.get('featured') === '1';
         this.state.view     = params.get('view')     || 'list';
         this.currentPage    = parseInt(params.get('page') || '1', 10);
     }
@@ -77,7 +77,7 @@ class EventCalendar {
         if (this.state.category) params.set('category', this.state.category);
         if (this.state.start)    params.set('start', this.state.start);
         if (this.state.end)      params.set('end', this.state.end);
-        if (this.state.premium)  params.set('premium', '1');
+        if (this.state.featured) params.set('featured', '1');
         if (this.state.view !== 'list') params.set('view', this.state.view);
         if (this.currentPage > 1) params.set('page', this.currentPage);
 
@@ -116,7 +116,7 @@ class EventCalendar {
     // ─── Event binding ─────────────────────────────────────────────────────────
 
     _bindEvents() {
-        const { search, location, category, start, end, premium } = this.els;
+        const { search, location, category, start, end } = this.els;
 
         if (search) {
             search.value = this.state.search;
@@ -141,12 +141,12 @@ class EventCalendar {
         immediate('category', category);
         immediate('start', start);
         immediate('end', end);
-        immediate('premium', premium);
+        immediate('featured', this.els.featured);
 
         // Restore UI state
         if (start) start.value = this.state.start;
         if (end) end.value = this.state.end;
-        if (premium) premium.checked = this.state.premium;
+        if (this.els.featured) this.els.featured.checked = this.state.featured;
 
         // View toggle buttons
         document.querySelectorAll('.view-btn').forEach(btn => {
@@ -220,7 +220,7 @@ class EventCalendar {
         if (this.state.category) params.set('category', this.state.category);
         if (this.state.start)    params.set('start', this.state.start);
         if (this.state.end)      params.set('end', this.state.end);
-        if (this.state.premium)  params.set('premium', '1');
+        if (this.state.featured) params.set('featured', '1');
 
         // Non-list views fetch all events without pagination
         if (this.state.view === 'week' || this.state.view === 'day' || this.state.view === 'month') {

@@ -20,7 +20,13 @@ class EventResource extends JsonResource
             'organizer'   => $this->organizer,
             'website'     => $this->website,
             'is_premium'  => $this->is_premium,
-            'is_featured' => $this->is_featured,
+            'is_featured' => $this->whenLoaded('featuredEvent', fn () =>
+                $this->featuredEvent &&
+                $this->featuredEvent->active &&
+                ($this->featuredEvent->start_date === null || $this->featuredEvent->start_date->lte(now())) &&
+                ($this->featuredEvent->end_date === null || $this->featuredEvent->end_date->gte(now())),
+                $this->is_featured
+            ),
             'is_all_day'  => $this->is_all_day,
             'views_count' => $this->views_count,
             'image_url'   => $this->image_url,

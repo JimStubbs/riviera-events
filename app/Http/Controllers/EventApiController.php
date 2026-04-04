@@ -27,6 +27,7 @@ class EventApiController extends Controller
                 ->with([
                     'location:id,name,city',
                     'category:id,name,color,icon',
+                    'featuredEvent',
                 ])
                 ->select([
                     'id', 'title', 'slug', 'description', 'start_date', 'end_date',
@@ -46,6 +47,11 @@ class EventApiController extends Controller
                 ->when($request->filled('start'), fn ($q) => $q->where('start_date', '>=', $request->string('start')))
                 ->when($request->filled('end'), fn ($q) => $q->whereDate('start_date', '<=', $request->string('end')))
                 ->when($request->boolean('premium'), fn ($q) => $q->premium())
+                ->when($request->boolean('featured'), fn ($q) => $q->whereHas('featuredEvent', fn ($fq) =>
+                    $fq->where('active', true)
+                       ->where(fn ($d) => $d->whereNull('start_date')->orWhere('start_date', '<=', now()))
+                       ->where(fn ($d) => $d->whereNull('end_date')->orWhere('end_date', '>=', now()))
+                ))
                 ->orderByDesc('is_premium')
                 ->orderBy('start_date')
                 ->paginate($perPage);

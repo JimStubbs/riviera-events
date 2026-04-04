@@ -44,10 +44,10 @@
             style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-ink); --tw-ring-color: var(--color-accent);">
     </div>
 
-    {{-- Premium Toggle --}}
+    {{-- Featured Toggle --}}
     <div class="flex items-center gap-2 pb-0.5">
-        <input id="filter-premium" type="checkbox" class="h-4 w-4 rounded focus:ring-2" style="border-color: var(--color-border); --tw-ring-color: var(--color-accent); accent-color: var(--color-accent);">
-        <label for="filter-premium" class="text-sm font-medium" style="color: var(--color-ink)">Featured only</label>
+        <input id="filter-featured" type="checkbox" class="h-4 w-4 rounded focus:ring-2" style="border-color: var(--color-border); --tw-ring-color: var(--color-accent); accent-color: var(--color-accent);">
+        <label for="filter-featured" class="text-sm font-medium" style="color: var(--color-ink)">★ Featured only</label>
     </div>
 
     {{-- View Toggles --}}
