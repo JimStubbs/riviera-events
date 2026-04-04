@@ -16,7 +16,7 @@ class EventApiController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $perPage = min((int) $request->integer('per_page', 20), 500);
-        $filters = $request->only(['location', 'category', 'search', 'start', 'end', 'premium', 'page', 'per_page']);
+        $filters = $request->only(['location', 'category', 'search', 'start', 'end', 'featured', 'page', 'per_page']);
 
         $cacheKey = 'events_api_' . md5(json_encode($filters));
 
