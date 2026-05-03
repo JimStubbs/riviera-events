@@ -47,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{event}', [OrganizerEventController::class, 'show'])->name('show');
         Route::get('/{event}/edit', [OrganizerEventController::class, 'edit'])->name('edit');
         Route::patch('/{event}', [OrganizerEventController::class, 'update'])->name('update');
+        Route::patch('/{event}/extend-series', [OrganizerEventController::class, 'extendSeries'])->name('extend-series');
         Route::delete('/{event}', [OrganizerEventController::class, 'destroy'])->name('destroy');
     });
 });
@@ -57,5 +58,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// ─── Locale Switching ─────────────────────────────────────────────────────────
+Route::get('/locale/{locale}', [\App\Http\Controllers\LocaleController::class, 'switch'])->name('locale.switch');
 
 require __DIR__ . '/auth.php';

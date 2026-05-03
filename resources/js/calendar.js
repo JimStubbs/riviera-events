@@ -303,7 +303,7 @@ class EventCalendar {
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const today = new Date();
 
-        const monthNames = ['January','February','March','April','May','June',
+        const monthNames = window.i18n?.months ?? ['January','February','March','April','May','June',
                             'July','August','September','October','November','December'];
 
         // Index events by date
@@ -317,13 +317,16 @@ class EventCalendar {
 
         let html = `<div class="bg-white overflow-hidden" style="border: 1px solid var(--color-border); border-radius: 2px;">`;
         html += `<div class="flex items-center justify-between px-4 py-3" style="border-bottom: 1px solid var(--color-border)">
-            <button id="month-prev" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">← Prev</button>
+            <button id="month-prev" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">${window.i18n?.prev ?? '← Prev'}</button>
             <h2 style="font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; color: var(--color-ink)">${monthNames[month]} ${year}</h2>
-            <button id="month-next" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">Next →</button>
+            <button id="month-next" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">${window.i18n?.next ?? 'Next →'}</button>
         </div>`;
 
         html += `<div class="grid grid-cols-7 text-xs text-center border-b" style="color: var(--color-muted); border-color: var(--color-border)">`;
-        ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
+        // daysShort is Mon-first; rotate to Sun-first for month grid
+        const _ds = window.i18n?.daysShort ?? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+        const _dayNamesMon = [_ds[6], ..._ds.slice(0, 6)];
+        _dayNamesMon.forEach(d => {
             html += `<div class="py-2">${d}</div>`;
         });
         html += `</div>`;
@@ -384,7 +387,7 @@ class EventCalendar {
     _renderWeek(events) {
         if (!this.els.week) return;
 
-        const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+        const dayNames = window.i18n?.daysShort ?? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
         const today = this._formatDate(new Date());
 
         // Build 7-day columns starting from _currentWeekStart (Monday)
@@ -409,9 +412,9 @@ class EventCalendar {
 
         // Navigation header
         html += `<div class="flex items-center justify-between px-4 py-3" style="border-bottom: 1px solid var(--color-border)">
-            <button id="week-prev" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">← Prev</button>
+            <button id="week-prev" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">${window.i18n?.prev ?? '← Prev'}</button>
             <h2 class="text-sm" style="font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; color: var(--color-ink)">${weekLabel}</h2>
-            <button id="week-next" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">Next →</button>
+            <button id="week-next" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">${window.i18n?.next ?? 'Next →'}</button>
         </div>`;
 
         // Day header row
@@ -436,7 +439,7 @@ class EventCalendar {
             } else {
                 dayEvents.forEach(ev => {
                     const color = ev.category?.color || '#6B7280';
-                    const time = ev.is_all_day ? 'All Day' : this._formatTime(ev.start_date);
+                    const time = ev.is_all_day ? (window.i18n?.allDay ?? 'All Day') : this._formatTime(ev.start_date);
                     const featuredStyle = ev.is_featured ? 'box-shadow: inset 2px 0 0 #fbbf24;' : '';
                     html += `<a href="/events/${ev.slug}" class="block mb-1 p-1 text-white text-xs hover:opacity-90 transition-opacity" style="background-color:${color}; border-radius: 1px; ${featuredStyle}" title="${this._esc(ev.title)}">
                         <div class="font-medium truncate">${ev.is_featured ? '★ ' : ''}${this._esc(ev.title)}</div>
@@ -466,7 +469,7 @@ class EventCalendar {
     _renderDay(events) {
         if (!this.els.day) return;
 
-        const dateLabel = this._currentDay.toLocaleDateString('en-US', {
+        const dateLabel = this._currentDay.toLocaleDateString(window.i18n?.jsLocale ?? 'en-US', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
         });
 
@@ -480,14 +483,14 @@ class EventCalendar {
 
         // Navigation header
         html += `<div class="flex items-center justify-between px-4 py-3" style="border-bottom: 1px solid var(--color-border)">
-            <button id="day-prev" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">← Prev</button>
+            <button id="day-prev" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">${window.i18n?.prev ?? '← Prev'}</button>
             <h2 style="font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; color: var(--color-ink)">${dateLabel}</h2>
-            <button id="day-next" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">Next →</button>
+            <button id="day-next" class="px-3 py-1.5 text-sm" style="border: 1px solid var(--color-border); border-radius: 2px; color: var(--color-muted)">${window.i18n?.next ?? 'Next →'}</button>
         </div>`;
 
         if (events.length === 0) {
             html += `<div class="py-16 text-center" style="color: var(--color-muted)">
-                <p class="text-lg font-display" style="font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif">No events on this day</p>
+                <p class="text-lg font-display" style="font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif">${window.i18n?.noEventsDay ?? 'No events on this day'}</p>
             </div>`;
         } else {
             html += `<div class="divide-y" style="border-color: var(--color-border)">`;
@@ -498,10 +501,10 @@ class EventCalendar {
                 const color = cat?.color || '#6B7280';
                 const barColor = ev.is_featured ? '#fbbf24' : color;
                 const badge = ev.is_featured
-                    ? `<span class="ml-auto flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5" style="border-radius: 1px; background-color: #fef3c7; color: #92400e">★ Featured</span>`
-                    : (ev.is_premium ? `<span class="ml-auto flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5" style="border-radius: 1px; background-color: #fef9c3; color: #92400e">★ Premium</span>` : '');
+                    ? `<span class="ml-auto flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5" style="border-radius: 1px; background-color: #fef3c7; color: #92400e">${window.i18n?.featuredBadge ?? '★ Featured'}</span>`
+                    : (ev.is_premium ? `<span class="ml-auto flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5" style="border-radius: 1px; background-color: #fef9c3; color: #92400e">${window.i18n?.premiumBadge ?? '★ Premium'}</span>` : '');
                 html += `<a href="/events/${ev.slug}" class="flex items-center gap-3 px-4 py-3 transition-colors" style="color: inherit" onmouseover="this.style.backgroundColor='var(--color-paper)'" onmouseout="this.style.backgroundColor=''">
-                    <div class="w-16 text-xs flex-shrink-0 font-medium" style="color: var(--color-muted)">All Day</div>
+                    <div class="w-16 text-xs flex-shrink-0 font-medium" style="color: var(--color-muted)">${window.i18n?.allDay ?? 'All Day'}</div>
                     <div class="w-1 h-8 flex-shrink-0" style="background-color:${barColor}; border-radius: 1px"></div>
                     <div class="min-w-0">
                         <div class="font-medium truncate" style="color: var(--color-ink)">${this._esc(ev.title)}</div>
@@ -518,8 +521,8 @@ class EventCalendar {
                 const barColor = ev.is_featured ? '#fbbf24' : color;
                 const time = this._formatTime(ev.start_date);
                 const badge = ev.is_featured
-                    ? `<span class="ml-auto flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5" style="border-radius: 1px; background-color: #fef3c7; color: #92400e">★ Featured</span>`
-                    : (ev.is_premium ? `<span class="ml-auto flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5" style="border-radius: 1px; background-color: #fef9c3; color: #92400e">★ Premium</span>` : '');
+                    ? `<span class="ml-auto flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5" style="border-radius: 1px; background-color: #fef3c7; color: #92400e">${window.i18n?.featuredBadge ?? '★ Featured'}</span>`
+                    : (ev.is_premium ? `<span class="ml-auto flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5" style="border-radius: 1px; background-color: #fef9c3; color: #92400e">${window.i18n?.premiumBadge ?? '★ Premium'}</span>` : '');
                 html += `<a href="/events/${ev.slug}" class="flex items-center gap-3 px-4 py-3 transition-colors" style="color: inherit" onmouseover="this.style.backgroundColor='var(--color-paper)'" onmouseout="this.style.backgroundColor=''">
                     <div class="w-16 text-xs flex-shrink-0 font-medium" style="color: var(--color-muted)">${time}</div>
                     <div class="w-1 h-8 flex-shrink-0" style="background-color:${barColor}; border-radius: 1px"></div>
@@ -554,15 +557,16 @@ class EventCalendar {
         // Parse date from the YYYY-MM-DD portion only to avoid UTC→local timezone shifts
         const parts = event.start_date ? event.start_date.split('T')[0].split('-') : null;
         const d = parts ? new Date(+parts[0], +parts[1] - 1, +parts[2]) : null;
-        const month = d ? d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : '';
+        const _msArr = window.i18n?.monthsShort ?? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const month = d ? _msArr[d.getMonth()].toUpperCase() : '';
         const day = d ? d.getDate() : '';
         const catColor = event.category?.color || 'var(--color-accent)';
         const catName = event.category ? this._esc(event.category.name) : '';
 
         const featuredBorder = event.is_featured ? 'border-left: 3px solid #fbbf24;' : '';
         const featuredBadge = event.is_featured
-            ? `<span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #d97706">★ Featured</span>`
-            : (event.is_premium ? `<span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent-2)">★ Premium</span>` : '');
+            ? `<span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #d97706">${window.i18n?.featuredBadge ?? '★ Featured'}</span>`
+            : (event.is_premium ? `<span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent-2)">${window.i18n?.premiumBadge ?? '★ Premium'}</span>` : '');
 
         const dateFlag = d ? `
             <div class="flex items-stretch" style="border-bottom: 1px solid var(--color-border)">
@@ -641,7 +645,7 @@ class EventCalendar {
             return el;
         };
 
-        this.els.pagination.appendChild(btn('← Prev', current_page - 1, current_page === 1));
+        this.els.pagination.appendChild(btn(window.i18n?.prev ?? '← Prev', current_page - 1, current_page === 1));
 
         for (let p = Math.max(1, current_page - 2); p <= Math.min(last_page, current_page + 2); p++) {
             const el = btn(p, p);
@@ -651,7 +655,7 @@ class EventCalendar {
             this.els.pagination.appendChild(el);
         }
 
-        this.els.pagination.appendChild(btn('Next →', current_page + 1, current_page === last_page));
+        this.els.pagination.appendChild(btn(window.i18n?.next ?? 'Next →', current_page + 1, current_page === last_page));
     }
 
     // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -691,14 +695,14 @@ class EventCalendar {
 
     /** Returns "Mar 4" style string for `date` */
     _formatDateLong(date) {
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        return date.toLocaleDateString(window.i18n?.jsLocale ?? 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
 
     /** Returns "9:00 AM" style string from ISO datetime string */
     _formatTime(isoString) {
         if (!isoString) return '';
         const d = new Date(isoString);
-        return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        return d.toLocaleTimeString(window.i18n?.jsLocale ?? 'en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     }
 
     _esc(str) {

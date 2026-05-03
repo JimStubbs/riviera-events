@@ -37,7 +37,7 @@ class HandleFeaturedCheckoutCompleted implements ShouldQueue
 
             $event = $payment->event;
 
-            Notification::route('mail', env('ADMIN_EMAIL', 'admin@example.com'))
+            Notification::route('mail', config('app.admin_email'))
                 ->notify(new NewFeaturedEventNotification($event));
         });
     }

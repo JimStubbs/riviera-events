@@ -29,7 +29,7 @@
         <div class="flex flex-wrap gap-2 mb-3">
             @if($event->category)
             <span class="inline-block px-2 py-0.5 rounded text-sm font-semibold text-white" style="background-color: {{ $event->category->color }}">
-                {{ $event->category->name }}
+                {{ translateCategory($event->category->name) }}
             </span>
             @endif
             @if($event->is_premium)
@@ -40,12 +40,18 @@
         <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ $event->title }}</h1>
 
         {{-- Meta --}}
+        @php
+            $showStartDate = app()->getLocale() === 'es'
+                ? $event->start_date->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY')
+                : $event->start_date->format('l, F j, Y');
+            $showEndDate = ($event->end_date && !$event->start_date->isSameDay($event->end_date))
+                ? (app()->getLocale() === 'es'
+                    ? $event->end_date->locale('es')->isoFormat('D [de] MMMM [de] YYYY')
+                    : $event->end_date->format('F j, Y'))
+                : null;
+        @endphp
         <div class="flex flex-wrap gap-4 text-sm text-gray-500 mb-6">
-            <span>📅 {{ $event->start_date->format('l, F j, Y') }}
-                @if($event->end_date && !$event->start_date->isSameDay($event->end_date))
-                    – {{ $event->end_date->format('F j, Y') }}
-                @endif
-            </span>
+            <span>📅 {{ $showStartDate }}{{ $showEndDate ? ' – ' . $showEndDate : '' }}</span>
             @if($event->location)
             <span>📍 {{ $event->location->city }}, {{ $event->location->state }}</span>
             @endif
@@ -81,13 +87,13 @@
                     rel="noopener"
                     class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
                 >
-                    + Add to Google Calendar
+                    {{ __('calendar.add_google_cal') }}
                 </a>
                 <a
                     href="{{ route('events.ics', $event) }}"
                     class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium"
                 >
-                    ↓ Download .ics
+                    {{ __('calendar.download_ics') }}
                 </a>
                 @if($event->website)
                 <a
@@ -96,7 +102,7 @@
                     rel="noopener"
                     class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium"
                 >
-                    🔗 Event Website
+                    {{ __('calendar.event_website') }}
                 </a>
                 @endif
                 <button
@@ -107,7 +113,7 @@
                         <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
                         <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
                     </svg>
-                    Share With Friends
+                    {{ __('calendar.share') }}
                 </button>
             </div>
 
@@ -145,11 +151,11 @@
                 >
                     {{-- Header --}}
                     <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                        <h3 class="text-base font-semibold text-gray-900">Share With Friends</h3>
+                        <h3 class="text-base font-semibold text-gray-900">{{ __('calendar.share_modal_title') }}</h3>
                         <button
                             @click="shareOpen = false"
                             class="text-gray-400 hover:text-gray-600 rounded-lg p-1 hover:bg-gray-100 transition-colors"
-                            aria-label="Close"
+                            aria-label="{{ __('calendar.close') }}"
                         >
                             <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
@@ -227,7 +233,7 @@
 
                         {{-- Email --}}
                         <a
-                            href="mailto:?subject={{ rawurlencode($event->title) }}&body={{ rawurlencode('Check out this event: ' . url()->current()) }}"
+                            href="mailto:?subject={{ rawurlencode($event->title) }}&body={{ rawurlencode(__('calendar.email_check_out') . url()->current()) }}"
                             class="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 transition-colors text-xs font-medium"
                         >
                             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -252,7 +258,7 @@
                                 <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
                             </svg>
                             <span x-show="!igCopied">Instagram</span>
-                            <span x-show="igCopied" class="text-pink-600">Link copied!</span>
+                            <span x-show="igCopied" class="text-pink-600">{{ __('calendar.link_copied') }}</span>
                         </button>
 
                     </div>
@@ -278,7 +284,7 @@
                                 <svg x-show="copied" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="20 6 9 17 4 12"/>
                                 </svg>
-                                <span x-text="copied ? 'Copied!' : 'Copy'"></span>
+                                <span x-text="copied ? '{{ __('calendar.copied') }}' : '{{ __('calendar.copy') }}'"></span>
                             </button>
                         </div>
                     </div>

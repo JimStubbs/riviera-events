@@ -1,10 +1,10 @@
 @extends($isEmbed ? 'layouts.embed' : 'layouts.calendar')
 
-@section('title', 'Riviera Maya Events Calendar — Upcoming Events')
+@section('title', __('calendar.page_title'))
 
 @push('head')
-<meta property="og:title" content="Riviera Maya Events Calendar — Upcoming Events" />
-<meta property="og:description" content="Discover upcoming events in the Riviera Maya — Puerto Aventuras, Playa del Carmen, Tulum and beyond." />
+<meta property="og:title" content="{{ __('calendar.page_title') }}" />
+<meta property="og:description" content="{{ __('calendar.og_description') }}" />
 <meta property="og:image" content="{{ asset('images/rm-events-calendar.png') }}" />
 <meta property="og:url" content="{{ url('/') }}" />
 <meta property="og:type" content="website" />
@@ -47,8 +47,8 @@
         </div>
 
         <div id="events-empty" class="hidden text-center py-16 text-gray-500">
-            <p class="text-xl font-medium">No events found</p>
-            <p class="mt-2 text-sm">Try adjusting your filters.</p>
+            <p class="text-xl font-medium">{{ __('calendar.no_events_found') }}</p>
+            <p class="mt-2 text-sm">{{ __('calendar.adjust_filters') }}</p>
         </div>
 
         <div id="events-pagination" class="mt-8 flex justify-center gap-2 hidden"></div>
@@ -58,6 +58,18 @@
 
 @push('scripts')
 <script>
+    window.i18n = {
+        prev:          "{{ __('calendar.prev') }}",
+        next:          "{{ __('calendar.next') }}",
+        allDay:        "{{ __('calendar.all_day') }}",
+        noEventsDay:   "{{ __('calendar.no_events_day') }}",
+        featuredBadge: "{{ __('calendar.featured_badge') }}",
+        premiumBadge:  "{{ __('calendar.premium_badge') }}",
+        jsLocale:      "{{ __('calendar.js_locale') }}",
+        months:        {!! json_encode(__('calendar.months')) !!},
+        monthsShort:   {!! json_encode(__('calendar.months_short')) !!},
+        daysShort:     {!! json_encode(__('calendar.days_short')) !!},
+    };
     window.calendarConfig = {
         apiUrl: '{{ route('api.events.index') }}',
         filterOptionsUrl: '{{ route('api.events.filter-options') }}',

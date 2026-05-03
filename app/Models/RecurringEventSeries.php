@@ -15,6 +15,7 @@ class RecurringEventSeries extends Model
         'weekday',
         'recurrence_end_date',
         'occurrence_count',
+        'expiry_notified_at',
     ];
 
     protected function casts(): array
@@ -25,6 +26,7 @@ class RecurringEventSeries extends Model
             'week_of_month'       => 'integer',
             'weekday'             => 'integer',
             'occurrence_count'    => 'integer',
+            'expiry_notified_at'  => 'datetime',
         ];
     }
 

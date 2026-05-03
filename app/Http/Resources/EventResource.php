@@ -37,7 +37,7 @@ class EventResource extends JsonResource
             ]),
             'category'    => $this->whenLoaded('category', fn () => [
                 'id'    => $this->category->id,
-                'name'  => $this->category->name,
+                'name'  => translateCategory($this->category->name),
                 'color' => $this->category->color,
                 'icon'  => $this->category->icon,
             ]),

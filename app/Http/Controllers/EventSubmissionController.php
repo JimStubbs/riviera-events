@@ -149,7 +149,7 @@ class EventSubmissionController extends Controller
             'verified_at' => now(),
         ]);
 
-        Notification::route('mail', env('ADMIN_EMAIL', 'admin@example.com'))
+        Notification::route('mail', config('app.admin_email'))
             ->notify(new NewEventPendingNotification($event));
 
         return redirect()->route('submit.success')->with('verified', true);

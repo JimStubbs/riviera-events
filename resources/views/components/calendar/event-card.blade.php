@@ -2,7 +2,8 @@
 @props(['event'])
 @php
     $date = !empty($event['start_date']) ? new \DateTime($event['start_date']) : null;
-    $month = $date ? strtoupper($date->format('M')) : '';
+    $monthsShort = __('calendar.months_short');
+    $month = $date ? strtoupper($monthsShort[$date->format('n') - 1]) : '';
     $day = $date ? $date->format('j') : '';
     $catColor = $event['category']['color'] ?? 'var(--color-accent)';
 @endphp
@@ -26,7 +27,7 @@
             </span>
             @endif
             @if(!empty($event['is_premium']))
-            <span class="text-xs font-bold uppercase tracking-wider" style="color: var(--color-accent-2)">★ Featured</span>
+            <span class="text-xs font-bold uppercase tracking-wider" style="color: var(--color-accent-2)">{{ __('calendar.featured_badge') }}</span>
             @endif
         </div>
     </div>

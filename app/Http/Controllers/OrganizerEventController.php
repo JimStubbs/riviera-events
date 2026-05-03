@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Event;
 use App\Models\Location;
+use App\Services\RecurringEventService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -88,6 +90,34 @@ class OrganizerEventController extends Controller
 
         return redirect()->route('dashboard')
             ->with('success', 'Event updated successfully.');
+    }
+
+    public function extendSeries(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+        abort_unless($event->isPartOfSeries() && $event->status === 'approved', 403);
+
+        $series  = $event->recurringSeries;
+        $maxDate = now()->addYear()->toDateString();
+
+        $validated = $request->validate([
+            'new_end_date' => [
+                'required',
+                'date_format:Y-m-d',
+                'after:' . Carbon::parse($series->recurrence_end_date)->toDateString(),
+                'before_or_equal:' . $maxDate,
+            ],
+        ]);
+
+        try {
+            $count = app(RecurringEventService::class)
+                ->extendSeries($series, $validated['new_end_date']);
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['new_end_date' => $e->getMessage()]);
+        }
+
+        return redirect()->route('dashboard.events.edit', $event)
+            ->with('success', "Series extended — {$count} new occurrence(s) added.");
     }
 
     public function destroy(Event $event)

@@ -18,7 +18,7 @@ class EventApiController extends Controller
         $perPage = min((int) $request->integer('per_page', 20), 500);
         $filters = $request->only(['location', 'category', 'search', 'start', 'end', 'featured', 'page', 'per_page']);
 
-        $cacheKey = 'events_api_' . md5(json_encode($filters));
+        $cacheKey = 'events_api_' . app()->getLocale() . '_' . md5(json_encode($filters));
 
         $events = Cache::remember($cacheKey, 300, function () use ($request, $perPage) {
             return Event::query()
@@ -62,14 +62,20 @@ class EventApiController extends Controller
 
     public function filterOptions(): JsonResponse
     {
-        $options = Cache::remember('filter_options', 1800, function () {
+        $options = Cache::remember('filter_options_' . app()->getLocale(), 1800, function () {
             return [
                 'locations' => Location::orderBy('city')
                     ->select('id', 'name', 'city', 'state')
                     ->get(),
                 'categories' => Category::orderBy('name')
                     ->select('id', 'name', 'color', 'icon')
-                    ->get(),
+                    ->get()
+                    ->map(fn ($cat) => [
+                        'id'    => $cat->id,
+                        'name'  => translateCategory($cat->name),
+                        'color' => $cat->color,
+                        'icon'  => $cat->icon,
+                    ]),
             ];
         });
 

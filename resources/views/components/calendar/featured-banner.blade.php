@@ -88,7 +88,7 @@
             {{-- Featured badge --}}
             <div class="relative z-10 p-4">
                 <span style="display:inline-flex; align-items:center; gap:5px; background: linear-gradient(90deg,#f59e0b,#fbbf24); color:#1a1a1a; font-size:0.65rem; font-weight:800; text-transform:uppercase; letter-spacing:0.15em; padding:3px 10px; border-radius:2px;">
-                    ★ Featured
+                    {{ __('calendar.featured_badge') }}
                 </span>
             </div>
 
@@ -97,7 +97,7 @@
                 @if($item->event->category)
                 <span class="text-xs font-bold uppercase tracking-widest self-start mb-2 px-2 py-0.5"
                       style="background: rgba(255,255,255,0.18); color:#fff; border-radius:2px; backdrop-filter:blur(4px);">
-                    {{ $item->event->category->name }}
+                    {{ translateCategory($item->event->category->name) }}
                 </span>
                 @endif
 
@@ -107,14 +107,19 @@
                 </h3>
 
                 <p class="text-sm mb-3" style="color: rgba(255,255,255,0.75); text-shadow: 0 1px 4px rgba(0,0,0,0.4);">
-                    {{ $item->event->start_date->format('D, M j') }}
+                    @php
+                        $bannerDate = app()->getLocale() === 'es'
+                            ? $item->event->start_date->locale('es')->isoFormat('ddd, D MMM')
+                            : $item->event->start_date->format('D, M j');
+                    @endphp
+                    {{ $bannerDate }}
                     @if($item->event->location)
                     &nbsp;·&nbsp;{{ $item->event->location->city }}
                     @endif
                 </p>
 
                 <span style="display:inline-flex; align-items:center; gap:6px; color:#fbbf24; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
-                    View Event <span style="font-size:1rem; line-height:1;">→</span>
+                    {{ __('calendar.view_event') }}
                 </span>
             </div>
         </a>

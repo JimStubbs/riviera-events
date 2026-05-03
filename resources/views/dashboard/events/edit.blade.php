@@ -185,5 +185,90 @@
 
         </form>
     </div>
+
+    {{-- Extend Recurring Series --}}
+    @if ($event->isPartOfSeries() && $event->status === 'approved')
+        @php
+            $series = $event->recurringSeries;
+            $futureCount = $series->events()->where('start_date', '>=', now())->count();
+            $minExtendDate = \Carbon\Carbon::parse($series->recurrence_end_date)->addDay()->format('Y-m-d');
+            $maxExtendDate = now()->addYear()->format('Y-m-d');
+            $recurrenceLabels = [
+                'daily'           => 'Daily',
+                'weekly'          => 'Weekly',
+                'biweekly'        => 'Every other week',
+                'monthly_date'    => 'Monthly (same date)',
+                'monthly_weekday' => 'Monthly (same weekday)',
+            ];
+        @endphp
+
+        <div class="bg-white rounded-xl border border-gray-200 p-6 md:p-8 mt-6">
+
+            <h2 class="text-lg font-bold text-gray-900 mb-4">Recurring Series</h2>
+
+            <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mb-6">
+                <div>
+                    <dt class="text-gray-500 font-medium mb-0.5">Pattern</dt>
+                    <dd class="text-gray-900">{{ $recurrenceLabels[$series->recurrence_type] ?? $series->recurrence_type }}</dd>
+                </div>
+                <div>
+                    <dt class="text-gray-500 font-medium mb-0.5">Series ends</dt>
+                    <dd class="text-gray-900">{{ \Carbon\Carbon::parse($series->recurrence_end_date)->format('M j, Y') }}</dd>
+                </div>
+                <div>
+                    <dt class="text-gray-500 font-medium mb-0.5">Upcoming occurrences</dt>
+                    <dd class="flex items-center gap-2">
+                        <span class="text-gray-900">{{ $futureCount }}</span>
+                        @if ($futureCount <= 3)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                                Ending soon
+                            </span>
+                        @endif
+                    </dd>
+                </div>
+            </dl>
+
+            @if (session('success') && str_contains(session('success'), 'occurrence'))
+                <div class="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-800 px-4 py-3 text-sm">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if ($errors->has('new_end_date'))
+                <div class="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+                    {{ $errors->first('new_end_date') }}
+                </div>
+            @endif
+
+            <form method="POST"
+                  action="{{ route('dashboard.events.extend-series', $event) }}"
+                  class="flex flex-col sm:flex-row items-end gap-3">
+                @csrf
+                @method('PATCH')
+
+                <div class="flex-1">
+                    <label for="new_end_date" class="block text-sm font-semibold text-gray-700 mb-1">
+                        Extend series until <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" id="new_end_date" name="new_end_date"
+                           min="{{ $minExtendDate }}"
+                           max="{{ $maxExtendDate }}"
+                           value="{{ old('new_end_date') }}"
+                           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('new_end_date') border-red-400 @enderror">
+                </div>
+
+                <button type="submit"
+                        class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition whitespace-nowrap">
+                    Extend Series
+                </button>
+            </form>
+
+            <p class="text-xs text-gray-400 mt-2">
+                Maximum extension is 1 year from today. Up to {{ \App\Services\RecurringEventService::MAX_OCCURRENCES }} new occurrences will be generated.
+            </p>
+
+        </div>
+    @endif
+
 </div>
 @endsection

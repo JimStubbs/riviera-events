@@ -76,12 +76,60 @@ class RecurringEventService
     }
 
     /**
+     * Generate new occurrences from the series' last event up to $newEndDate.
+     * Updates series metadata and resets the expiry notification flag.
+     * Returns count of new occurrences created.
+     */
+    public function extendSeries(RecurringEventSeries $series, string $newEndDate): int
+    {
+        $newEnd     = Carbon::parse($newEndDate)->endOfDay();
+        $currentEnd = Carbon::parse($series->recurrence_end_date)->endOfDay();
+
+        if (! $newEnd->greaterThan($currentEnd)) {
+            throw new \InvalidArgumentException('New end date must be after the current recurrence end date.');
+        }
+        if ($newEnd->greaterThan(now()->addYear())) {
+            throw new \InvalidArgumentException('Cannot extend a series by more than one year.');
+        }
+
+        $lastEvent = $series->events()->orderByDesc('start_date')->first();
+        if (! $lastEvent) {
+            throw new \InvalidArgumentException('Series has no events to extend from.');
+        }
+
+        $recurrenceData = [
+            'recurrence_type' => $series->recurrence_type,
+            'day_of_week'     => $series->day_of_week,
+            'week_of_month'   => $series->week_of_month,
+            'weekday'         => $series->weekday,
+        ];
+
+        $dates = $this->calculateOccurrenceDates(
+            startAfter:     $lastEvent->start_date,
+            recurrenceType: $series->recurrence_type,
+            recurrenceData: $recurrenceData,
+            endDate:        $newEnd,
+            maxOccurrences: self::MAX_OCCURRENCES
+        );
+
+        $this->bulkCreateOccurrences($lastEvent, $series, $dates);
+
+        $series->update([
+            'recurrence_end_date' => Carbon::parse($newEndDate)->toDateString(),
+            'occurrence_count'    => $series->events()->count(),
+            'expiry_notified_at'  => null,
+        ]);
+
+        return count($dates);
+    }
+
+    /**
      * Calculate occurrence dates strictly after $startAfter, up to $maxOccurrences,
      * stopping when a date exceeds $endDate.
      *
      * @return Carbon[]
      */
-    private function calculateOccurrenceDates(
+    protected function calculateOccurrenceDates(
         Carbon $startAfter,
         string $recurrenceType,
         array  $recurrenceData,
@@ -192,7 +240,7 @@ class RecurringEventService
      * Bulk-create Event records for each date, cloning the template.
      * Wraps creates in withoutObservers() to avoid N cache flushes; flushes once at the end.
      */
-    private function bulkCreateOccurrences(
+    protected function bulkCreateOccurrences(
         Event $template,
         RecurringEventSeries $series,
         array $dates
