@@ -112,6 +112,17 @@ class RecurringEventService
             maxOccurrences: self::MAX_OCCURRENCES
         );
 
+        // Filter out any dates that already have an event in this series to prevent duplicates.
+        $existingDates = $series->events()
+            ->pluck('start_date')
+            ->map(fn ($d) => Carbon::parse($d)->toDateString())
+            ->flip()
+            ->all();
+
+        $dates = array_values(
+            array_filter($dates, fn ($d) => ! isset($existingDates[$d->toDateString()]))
+        );
+
         $this->bulkCreateOccurrences($lastEvent, $series, $dates);
 
         $series->update([
